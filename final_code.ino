@@ -1,3 +1,6 @@
+#define SENSORPIN_L 7
+#define SENSORPIN_R 12
+
 const int IN1 = 2, IN2 = 3, PWM = 1;
 const int sensorDown = 6, sensorUp = 4, SensorPinL = 7, sensorPinR = 12;
 
@@ -19,11 +22,11 @@ void setup()
   pinMode(SensorPinL, INPUT);
   pinMode(sensorPinR, INPUT);
 }
+
 void loop()
 {
   if ( x == 0)
   {
-
     while (!Serial);
     Serial.println("Step 1: Introduce, Enter your input for caato arm:");
     x = 1;
@@ -32,17 +35,18 @@ void loop()
 
   if (Serial.available() == 1) {
 
+
     user_input = Serial.parseInt();
 
     Serial.print("Step 2: Input from user, user input is: ");
     Serial.println(user_input);
 
-    if (user_input == 2)
+    if (user_input == 2) //move up
     {
       Serial.println("Step 3: Checking if condition for input, hello 2");
       messageUP();
     }
-    else if (user_input == 1)
+    else if (user_input == 1) //move down
     {
       Serial.print("Step 3: Checking if condition for input,hello 1");
       messageDown();
@@ -53,6 +57,7 @@ void loop()
     }
   }
 }
+
 void messageUP()
 {
   check_sensors();
@@ -62,6 +67,7 @@ void messageUP()
   if (UP)
     Motor_Forward(200);
 }
+
 void messageDown()
 {
   check_sensors();
@@ -70,6 +76,7 @@ void messageDown()
   if (DOWN)
     Motor_Backward(200);
 }
+
 void messageBR()
 {
   check_sensors();
@@ -80,7 +87,7 @@ void Motor_Forward(int Speed) {
   while (1)
   {
     check_sensors();
-    Serial.println("Step 5: Motor forward function");
+    //Serial.println("Step 5: Motor forward function");
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     analogWrite(PWM, Speed);
@@ -88,7 +95,18 @@ void Motor_Forward(int Speed) {
     {
       Motor_Brake();
       x = 0;
+      delay(100);
+      check_bb();
+      if (sensorState == 0) {
+        Serial.println("Docked");
+      }
+      else {
+        
+        Serial.println("Not Docked");
+        messageDown();
+      }
       break;
+
     }
   }
 }
@@ -97,7 +115,7 @@ void Motor_Backward(int Speed) {
   while (1)
   {
     check_sensors();
-    Serial.println("Motor backward function");
+//    Serial.println("Motor backward function");
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, HIGH);
     analogWrite(PWM, Speed);
@@ -115,8 +133,24 @@ void Motor_Brake() {
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
 }
+
 void check_sensors()
 {
   UP = digitalRead(sensorUp);
   DOWN = digitalRead(sensorDown);
+}
+
+void check_bb()
+{
+  sensorStateL = digitalRead(SENSORPIN_L); //1 if not broken (not docked), 0 if broken (docked)
+  sensorStateR = digitalRead(SENSORPIN_R); //1 if not broken (not docked), 0 if broken (docked)
+
+  if (sensorStateL == 0 && sensorStateR == 0) { //docked
+    sensorState = 0;
+    //Serial.println("Docked");
+  }
+  else {
+    sensorState = 1;
+    //Serial.println("Not Docked");
+  }
 }
