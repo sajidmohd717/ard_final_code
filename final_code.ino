@@ -5,6 +5,8 @@ int user_input = 0, position_state = 0, UP = 3, DOWN = 3; // a variable to read 
 
 int sensorStateL = 2, sensorStateR = 2, sensorState = 2;
 
+int x = 0;
+
 void setup()
 {
   Serial.begin(9600);
@@ -16,16 +18,21 @@ void setup()
   pinMode(sensorUp, INPUT);
   pinMode(SensorPinL, INPUT);
   pinMode(sensorPinR, INPUT);
-
-  while (!Serial);
-
-  Serial.println("Step 1: Introduce, Enter your input for caato arm:");
 }
 void loop()
 {
-  while (Serial.available() == 1) {
+  if ( x == 0)
+  {
 
-    user_input = Serial.read();
+    while (!Serial);
+    Serial.println("Step 1: Introduce, Enter your input for caato arm:");
+    x = 1;
+  }
+
+
+  if (Serial.available() == 1) {
+
+    user_input = Serial.parseInt();
 
     Serial.print("Step 2: Input from user, user input is: ");
     Serial.println(user_input);
@@ -37,8 +44,8 @@ void loop()
     }
     else if (user_input == 1)
     {
+      Serial.print("Step 3: Checking if condition for input,hello 1");
       messageDown();
-      Serial.print("hello 1");
     }
     else if (user_input == 0)
     {
@@ -52,20 +59,16 @@ void messageUP()
   Serial.print("Step 4: Enterned MessageUp function, Value for Up is");
   Serial.println(UP);
   check_sensors();
-  if (UP ==  1)
+  if (UP)
     Motor_Forward(200);
-  else if (UP == 0)
-    Motor_Brake();
 }
 void messageDown()
 {
   check_sensors();
-  Serial.println("Value for DOWN is");
+  Serial.println("Step 4: Enterned MessageUp function, Value for DOWN is");
   Serial.println(DOWN);
   if (DOWN)
     Motor_Backward(200);
-  else if (!DOWN)
-    Motor_Brake();
 }
 void messageBR()
 {
@@ -74,21 +77,38 @@ void messageBR()
 }
 
 void Motor_Forward(int Speed) {
-  while (UP == 1)
+  while (1)
   {
     check_sensors();
     Serial.println("Step 5: Motor forward function");
     digitalWrite(IN1, HIGH);
     digitalWrite(IN2, LOW);
     analogWrite(PWM, Speed);
+    if (UP == 0)
+    {
+      Motor_Brake();
+      x = 0;
+      break;
+    }
   }
 }
 
 void Motor_Backward(int Speed) {
-  Serial.println("Motor backward function");
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  analogWrite(PWM, Speed);
+  while (1)
+  {
+    check_sensors();
+    Serial.println("Motor backward function");
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    analogWrite(PWM, Speed);
+    if (DOWN == 0)
+    {
+      Motor_Brake();
+      x = 0;
+      break;
+    }
+  }
+
 }
 
 void Motor_Brake() {
